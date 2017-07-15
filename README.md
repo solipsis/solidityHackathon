@@ -8,7 +8,7 @@
 
     //   -----------------------------------------------------------------------
     //   To GET active issues for a <USER>, <REPOSITORY>
-    //       GET     https://api.github.com/repos/<USER>/<REPOSITORY>/issues/<NUMBER>?state=open
+    //       GET     https://api.github.com/repos/<USER>/<REPOSITORY>/issues?state=open
     //
     //   Save and track issue number
     //       <NUMBER> = response["number"]
