@@ -14,8 +14,8 @@ import (
 )
 
 type issue struct {
-	id   int
-	desc string
+	id        string
+	threshold int
 }
 
 var issues []issue
@@ -57,14 +57,15 @@ func main() {
 		},
 	}
 
-	session.newIssue("CoolName", 5000)
+	session.newIssue("https://github.com/ethereum/go-ethereum/issues/14803", 5000)
 	waitForBlock()
-	session.newIssue("Issue222", 1984)
+	session.newIssue("https://github.com/solipsis/solidityHackathon/issues/7", 1984)
 	waitForBlock()
-
 	session.printIssues()
+	session.fetchIssues(conn)
 
-	issues = append(issues, issue{5, "hello"})
+	issues = append(issues, issue{"www", 4})
+	//	pollIssue("blah")
 	http.HandleFunc("/", handler)
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
 }
@@ -86,7 +87,39 @@ func (session *SpawnSession) newIssue(name string, threshold int64) {
 	fmt.Println("Issue:", issue)
 }
 
-func (session *SpawnSession) fetchIssues() {
+func (session *SpawnSession) fetchIssues(conn *ethclient.Client) {
+	size, err := session.Size()
+	m := make(map[string]int)
+	if err != nil {
+		log.Fatalf("Failed to retrieve index: %v", err)
+	}
+	fmt.Println("Size: ", size)
+	for i := int64(0); i < size.Int64(); i++ {
+		addr, err := session.AddressLUT(big.NewInt(i))
+		if err != nil {
+			log.Fatalf("Failed to retrieve address: %v", err)
+		}
+		issue, err := session.Issues(addr)
+		if err != nil {
+			log.Fatalf("Failed to retrieve issue from address: %v", err)
+		}
+
+		transfer, err := NewTransfer(addr, conn)
+		if err != nil {
+			log.Fatalf("Failed to instantiate a Token contract: %v", err)
+		}
+		fmt.Println("ADDDRRESSS", addr)
+		funded, err := transfer.Funded(&session.CallOpts)
+		if err != nil {
+			log.Fatalf("Failed to retrieve token name: %v", err)
+		}
+
+		if funded {
+			m[issue.Id] += int(issue.Threshold.Int64())
+		}
+
+	}
+	fmt.Println("MMMM: ", m)
 
 }
 
@@ -106,6 +139,15 @@ func (session *SpawnSession) printIssues() {
 		if err != nil {
 			log.Fatalf("Failed to retrieve issue from address: %v", err)
 		}
-		fmt.Printf("Name: %v Threshold: %v Index: %v", issue.Name, issue.Threshold, i)
+		fmt.Printf("Name: %v Threshold: %v Index: %v", issue.Id, issue.Threshold, i)
 	}
+
+}
+
+func pollIssue(url string) {
+	_, err := http.Get("https://github.com/solipsis/solidityHackathon/issues/3")
+	if err != nil {
+		fmt.Printf("Error fetching issue %v\n", err)
+	}
+	//fmt.Println(resp.Body.)
 }
