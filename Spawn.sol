@@ -21,15 +21,16 @@ contract Spawn {
     struct Issue {
         uint threshold;
         string name;
+        uint id
     }
 
     mapping(address => Issue) public issues;
     address[] public addressLUT; 
 
-    function createIssue(string name, uint threshold) returns (address) {
+    function createIssue(uint id, uint threshold) returns (address) {
         address subAddress = new Transfer(threshold);
 
-        issues[subAddress].name = name;
+        issues[subAddress].id = id;
         issues[subAddress].threshold = threshold;
         addressLUT.push(subAddress);
         return subAddress;

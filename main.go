@@ -4,8 +4,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/big"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -34,11 +36,33 @@ func main() {
 	}
 	fmt.Println("Auth successfull", auth)
 
-	fmt.Println("diff")
-	address, tx, contract, err := DeploySpawn(auth)
+	address, tx, spawner, err := DeploySpawn(auth, conn)
 	if err != nil {
-		log.Fatalf("Unable to deploy contract: %v\n", err)
+		log.Fatalf("Failed to deploy new contract %v", err)
 	}
+	fmt.Printf("Contract pending deploy 0x%x\n\n", address)
+	fmt.Printf("Transaction waiting to be mined: 0x%x\n\n", tx.Hash())
+	fmt.Println("spawner: ", spawner)
+	waitForBlock()
+
+	session := &SpawnSession{
+		Contract: spawner,
+		CallOpts: bind.CallOpts{
+			Pending: true,
+		},
+		TransactOpts: bind.TransactOpts{
+			From:     auth.From,
+			Signer:   auth.Signer,
+			GasLimit: big.NewInt(3141592),
+		},
+	}
+
+	session.newIssue("CoolName", 5000)
+	waitForBlock()
+	session.newIssue("Issue222", 1984)
+	waitForBlock()
+
+	session.printIssues()
 
 	issues = append(issues, issue{5, "hello"})
 	http.HandleFunc("/", handler)
@@ -48,4 +72,40 @@ func main() {
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Issues ", issues)
 	fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
+}
+
+func waitForBlock() {
+	time.Sleep(5000 * time.Millisecond)
+}
+
+func (session *SpawnSession) newIssue(name string, threshold int64) {
+	issue, err := session.CreateIssue(name, big.NewInt(threshold))
+	if err != nil {
+		log.Fatalf("failed to make sub transfer :name:%V %v", name, err)
+	}
+	fmt.Println("Issue:", issue)
+}
+
+func (session *SpawnSession) fetchIssues() {
+
+}
+
+func (session *SpawnSession) printIssues() {
+	fmt.Println("Printing issues")
+	size, err := session.Size()
+	if err != nil {
+		log.Fatalf("Failed to retrieve index: %v", err)
+	}
+	fmt.Println("Size: ", size)
+	for i := int64(0); i < size.Int64(); i++ {
+		addr, err := session.AddressLUT(big.NewInt(i))
+		if err != nil {
+			log.Fatalf("Failed to retrieve address: %v", err)
+		}
+		issue, err := session.Issues(addr)
+		if err != nil {
+			log.Fatalf("Failed to retrieve issue from address: %v", err)
+		}
+		fmt.Printf("Name: %v Threshold: %v Index: %v", issue.Name, issue.Threshold, i)
+	}
 }
