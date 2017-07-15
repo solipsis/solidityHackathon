@@ -34,6 +34,7 @@ func main() {
 	}
 	fmt.Println("Auth successfull", auth)
 
+	fmt.Println("diff")
 	address, tx, contract, err := DeploySpawn(auth)
 	if err != nil {
 		log.Fatalf("Unable to deploy contract: %v\n", err)
