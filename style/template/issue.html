@@ -1,0 +1,111 @@
+<html>
+
+<link rel="stylesheet" href="/style/semantic/dist/semantic.css">
+<script src="/style/jquery/dist/jquery.js"></script>
+<script src="/style/semantic/dist/semantic.min.js"></script>
+
+<body>
+
+  <br><br><br>
+
+  <div class="ui grid">
+    <div class="three wide column"></div>
+    <div class="nine wide column">
+      <div class="ui huge header">Bounty Hub</div>
+    </div>
+    <div class="four wide column">
+      
+      <form class="ui form" action="/add_issue" method="GET">
+      <button class="ui icon button" data-tooltip="Add issue" type="submit" formaction="/add_issue">
+        <i class="plus icon"></i>
+      </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="ui three column doubling stackable container">
+
+    
+
+    <div class="ui cards centered">
+
+      {{ range .}}
+
+      <div class="card">
+        <div class="content">
+          <!-- <img class="right floated mini ui image" src="/images/avatar/large/elliot.jpg"> -->
+          <div class="ui left aligned header">
+            {{.Issue.Name }}
+
+
+
+          </div>
+
+          <div class="ui right floated">
+            <div class="ui icon button" data-tooltip="View on GitHub">
+              <i class="github icon"></i>
+            </div>
+          </div>
+
+
+
+          <div class="meta">
+            {{.Issue.Project}}
+          </div>
+          <div class="description">
+            {{ .Issue.Description }}
+          </div>
+
+          <br>
+
+          <!-- <div>
+            <div class="ui labeled button" tabindex="0">
+              <div class="ui gray button">
+                Repo
+              </div>
+              <a class="ui basic gray left pointing label">
+              {{ .Reward }} &nbsp;
+              <i class="github icon"></i>
+            </a>
+            </div>
+          </div> -->
+
+
+           <div> 
+              <br>  
+             <div class="fluid ui labeled button"> 
+               <div class="fluid ui green label"> 
+                Reward 
+               </div> 
+               <p align="right"> 
+               <p class="fluid ui basic green left pointing label"> 
+                   {{ .Reward }} &nbsp; <i class="shekel icon"></i>
+               </p> 
+             </div> 
+           </div> 
+         </div>
+
+        <div class="extra content">
+          <div class="fluid ui one buttons">
+            {{if .Open}}
+            <div class="ui basic blue button">Open</div>
+            {{else}}
+            <div class="ui basic red button">Closed</div>
+            {{end}}
+            <!-- <div class="ui basic blue button">Decline</div> -->
+          </div>
+        </div>
+      </div>
+
+
+
+      {{ end }}
+
+
+    </div>
+  </div>
+
+
+</body>
+
+</html>
